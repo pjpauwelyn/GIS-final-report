@@ -1,14 +1,603 @@
-\documentclass{article}
-\usepackage{graphicx} % Required for inserting images
+\documentclass[12pt,a4paper]{article}
 
-\title{GIS-final-report}
-\author{Pieterjan Pauwelyn}
-\date{June 2026}
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[british]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue}
+\usepackage{natbib}
+\bibliographystyle{apalike}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{microtype}
+\usepackage{pdflscape}
+\usepackage{rotating}
 
+% ── Colour for todo placeholders ──────────────────────────────────────────────
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+\newcommand{\placeholder}[1]{\textcolor{orange}{\textit{[PLACEHOLDER: #1]}}}
+
+% ── Header / footer ───────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Coffee Suitability on Hawai\okina i}
+\lhead{GIS Group Project}
+\cfoot{\thepage}
+
+% ── Custom okina character ─────────────────────────────────────────────────────
+\newcommand{\okina}{\textquoteleft}
+
+% ══════════════════════════════════════════════════════════════════════════════
 \begin{document}
+% ══════════════════════════════════════════════════════════════════════════════
 
-\maketitle
+% ── Title page ────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Large\bfseries Geo-information Science and Remote Sensing\\[0.4em]
+  DAM 22306 --- Group Project\par}
+  \vspace{2cm}
+  {\LARGE\bfseries Case Study: Coffee Bean Production in Hawai\okina i\\[0.3em]
+  in a Changing Climate\par}
+  \vspace{1.5cm}
+  {\large\itshape Suitability modelling of \textit{Coffea arabica} cultivation\\[0.2em]
+  on the Island of Hawai\okina i under current and projected climate scenarios\par}
+  \vspace{2cm}
+  {\normalsize
+  Ella Jansma (s1114516)\\[0.2em]
+  Max Claessens (s1097783)\\[0.2em]
+  Gijs Bomert (s1117543)\\[0.2em]
+  Jochem Oude Groeniger (s1141308)\\[0.2em]
+  Pieterjan Pauwelyn (s1089656)\par}
+  \vspace{1.5cm}
+  {\normalsize Wageningen University \& Research\\[0.2em]
+  \today\par}
+\end{titlepage}
 
+% ── Table of contents ─────────────────────────────────────────────────────────
+\newpage
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
 \section{Introduction}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Coffee is one of the most widely consumed beverages in the world, with hundreds of billions of cups enjoyed each year. It is produced from the roasted seeds of plants belonging to the \textit{Coffea} genus, of which \textit{Coffea arabica} is the most commonly used species, accounting for roughly 70\% of global production. In its natural environment, \textit{C.~arabica} grows in tropical highland regions, where it is typically found in humid forest ecosystems. Originally native to East Africa --- particularly Ethiopia and South Sudan --- the species has since been widely introduced to suitable regions across the globe \citep{PlantskewArabica}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/coffea_arabica_distribution.png}
+  \caption{Natural (green) and introduced (purple) distribution of \textit{Coffea arabica} \citep{PlantskewArabica}.}
+  \label{fig:arabica_distribution}
+\end{figure}
+
+\subsection{Climatic Requirements of \textit{Coffea arabica}}
+
+\textit{Coffea arabica} is adapted to tropical highland climates with moderate, stable temperatures. Optimal temperature for mature plant growth and fruit development is generally cited at 18--21\,°C, with acceptable performance up to approximately 24\,°C \citep{Scott2015}. Above these thresholds, fruit quality declines and productivity drops; above 25\,°C desiccation of the cherry accelerates \citep{Scott2015}. Prolonged exposure beyond 30\,°C inhibits growth, while temperatures below 18\,°C suppress development.
+
+Temperature sensitivity is also phenologically stage-dependent. Germination is optimal around 30--32\,°C, reducing the germination window to approximately three weeks; at 17\,°C this extends to three months, and above 35\,°C germination is inhibited entirely \citep{Tummakate1991}. Bud initiation similarly requires brief exposure to elevated temperatures. This means that even under a warming scenario, interannual temperature variability matters as much as mean temperature shift.
+
+\textit{C.~arabica} requires annual rainfall in the range of 1{,}100--1{,}800\,mm \citep{Alves2020}, with a critical 2--4-month dry spell needed to stimulate uniform flowering \citep{DaMatta2006}. Effective rainfall depends strongly on soil water-holding capacity, atmospheric humidity, cloud cover, and cultivation method. Agroforestry systems, for example, reduce direct insolation and evapotranspiration, effectively lowering the rainfall threshold compared to open monoculture \citep{GrandezAlberca2025}.
+
+\subsection{Soil Requirements}
+
+According to \citet{DaMatta2006}, \textit{C.~arabica} performs best in deep, well-drained soils with good structural properties that permit adequate root penetration and water movement. Soils with high organic matter content are favourable because they support nutrient availability and water retention without causing waterlogging. Slightly acidic conditions promote optimal nutrient uptake. In the Hawaiian context, Andisols --- derived from volcanic ash and characterised by high organic matter and excellent drainage --- and Hualalai Volcanics and Kau Basalt geological units are among the most suitable substrates \citep{DaMatta2006}.
+
+\subsection{Coffee in Hawai\okina i and the Policy Context}
+
+\placeholder{Expand: brief history of Kona coffee, current acreage, economic importance, state policy context. Add source.}
+
+The Government of Hawai\okina i aims to improve decision-making efficiency regarding agricultural land use by obtaining spatially explicit projections of coffee suitability under current and future climate conditions. This study was commissioned to: (i) identify the most suitable locations for \textit{C.~arabica} cultivation on the Island of Hawai\okina i under current climate; (ii) assess how suitability shifts under three CMIP6 climate scenarios (SSP1-2.6, SSP3-7.0, and SSP5-8.5) projected to mid-century; and (iii) evaluate spatial trends in available suitable land and outline broad mitigation considerations.
+
+\subsection{Climate Change Pressures}
+
+\textit{C.~arabica} plantations are already experiencing climate-driven stressors worldwide \citep{DellaPeruta2025}. Studies in Brazil \citep{deFreitas2024} and South America more broadly \citep{GrandezAlberca2025} document declining yields and contracting viable areas. Pollinator communities --- essential for consistent yields --- are also projected to decline or shift in range under warming scenarios \citep{Imbach2017}, adding an additional layer of uncertainty beyond the direct climatic envelope. Hawai\okina i is not immune to these pressures, and understanding how temperature and rainfall shifts interact with local soil and land-use constraints is a prerequisite for sound agricultural planning.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Data}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Table~\ref{tab:datasets} lists all datasets used in the analysis. Input datasets are labelled with a 0-prefix (0A--0L). Intermediate and output datasets generated during the workflow are labelled 1A--45A following the Data Action Model (Section~\ref{sec:dam}).
+
+\begin{landscape}
+\begin{longtable}{@{}lp{5.5cm}p{3.5cm}p{2.5cm}p{5cm}p{2cm}@{}}
+  \caption{Dataset description table of all input data used in the analysis.}
+  \label{tab:datasets}\\
+  \toprule
+  \textbf{ID} & \textbf{Dataset} & \textbf{Attribute} & \textbf{Measurement scale} & \textbf{Attribute domain} & \textbf{Structure} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{6}{c}{\itshape (Table~\ref{tab:datasets} continued)}\\
+  \toprule
+  \textbf{ID} & \textbf{Dataset} & \textbf{Attribute} & \textbf{Measurement scale} & \textbf{Attribute domain} & \textbf{Structure} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  % ── Precipitation ────────────────────────────────────────────────────────────
+  0A & Assignment data (CHELSA current) & Precipitation (mm/month) & Ratio & 0--$\infty$ & Raster \\
+  0A\textsubscript{126} & Assignment data (CHELSA SSP1-2.6) & Precipitation (mm/month) & Ratio & 0--$\infty$ & Raster \\
+  0A\textsubscript{370} & Assignment data (CHELSA SSP3-7.0) & Precipitation (mm/month) & Ratio & 0--$\infty$ & Raster \\
+  0A\textsubscript{585} & Assignment data (CHELSA SSP5-8.5) & Precipitation (mm/month) & Ratio & 0--$\infty$ & Raster \\
+  \addlinespace
+  % ── Temperature ──────────────────────────────────────────────────────────────
+  0B & Assignment data (CHELSA current) & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  0B\textsubscript{126} & Assignment data (CHELSA SSP1-2.6) & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  0B\textsubscript{370} & Assignment data (CHELSA SSP3-7.0) & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  0B\textsubscript{585} & Assignment data (CHELSA SSP5-8.5) & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  \addlinespace
+  % ── Roads ─────────────────────────────────────────────────────────────────────
+  0C & Roads\_-\_Hawaii\_County & Roads & Nominal & All road classes & Vector \\
+  \addlinespace
+  % ── Geology / Soil ────────────────────────────────────────────────────────────
+  0D & Geological\_Units & Geological unit & Nominal & All units & Vector \\
+  0E & TAXOUSDA\_250m\_ll.tif & Soil value code & Nominal & 1--99 & Raster \\
+  0F & TAXOUSDA\_250m\_ll.tif.csv & Generic soil name & Nominal & All & Table \\
+  \addlinespace
+  % ── Land use / conservation ───────────────────────────────────────────────────
+  0G & Conservation District Subzones & Conservation District Code & Nominal & G, C, R, L, P, SS & Vector \\
+  0H & Areas of Critical Habitat (Consolidated) & Critical habitat designation & Nominal & All & Vector \\
+  0I & Department of Defense Lands & Base\_Name & Nominal & All & Vector \\
+  0J & Land Use Land Cover (LULC) & LandCover class & Nominal & 1--92 & Vector \\
+  \addlinespace
+  % ── Elevation ─────────────────────────────────────────────────────────────────
+  0L & Hawaii\_100\_Foot\_Contours & Elevation & Ratio & 100--13{,}700\,ft & Vector \\
+\end{longtable}
+\end{landscape}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Methodology}
+% ══════════════════════════════════════════════════════════════════════════════
+
+The analysis follows a multi-criteria suitability modelling approach implemented in ArcGIS Pro. All datasets were standardised to a common coordinate reference system (\placeholder{specify CRS --- e.g.\ NAD83 / Hawaii zone 3 or WGS84 UTM 5N}), spatial resolution (\placeholder{specify cell size, e.g.\ 250\,m}), and extent (Island of Hawai\okina i). Individual factor layers were reclassified to a 1--3 suitability scale (1\,=\,unsuitable, 2\,=\,suboptimal, 3\,=\,optimal) or a binary / categorical scale where appropriate. The factor layers were then combined using the ArcGIS Suitability Modeler with weights assigned according to the relative importance of each criterion for \textit{C.~arabica} cultivation.
+
+\subsection{Suitability Criteria and Thresholds}
+\label{sec:criteria}
+
+The following six criteria were identified as the primary drivers of \textit{C.~arabica} suitability on Hawai\okina i. Thresholds are based on \citet{Alves2020} for precipitation and \citet{Scott2015} for temperature, with local soil and land-use criteria derived from available spatial datasets.
+
+\begin{table}[H]
+  \centering
+  \caption{Suitability scoring scheme applied to each factor layer.}
+  \label{tab:criteria}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabularx}{\textwidth}{@{}lXcc@{}}
+    \toprule
+    \textbf{Factor} & \textbf{Threshold / class} & \textbf{Score} & \textbf{Class label} \\
+    \midrule
+    \multirow{5}{*}{Precipitation (mm/yr)} & $<$1{,}100 & 1 & Unsuitable \\
+     & 1{,}100--1{,}600 & 2 & Suboptimal \\
+     & 1{,}600--1{,}800 & 3 & Optimal \\
+     & 1{,}800--2{,}000 & 2 & Suboptimal \\
+     & $>$2{,}000 & 1 & Unsuitable \\
+    \addlinespace
+    \multirow{5}{*}{Temperature (°C)} & $<$15 & 1 & Unsuitable \\
+     & 15--18 & 2 & Suboptimal \\
+     & 18--23 & 3 & Optimal \\
+     & 23--26 & 2 & Suboptimal \\
+     & $>$26 & 1 & Unsuitable \\
+    \addlinespace
+    \multirow{5}{*}{Elevation (m)} & $<$900 & 1 & Unsuitable \\
+     & 900--1{,}400 & 2 & Suboptimal \\
+     & 1{,}400--1{,}800 & 3 & Optimal \\
+     & 1{,}800--2{,}500 & 2 & Suboptimal \\
+     & $>$2{,}500 & 1 & Unsuitable \\
+    \addlinespace
+    \multirow{3}{*}{Proximity to roads (m)} & $<$2{,}000 & 3 & Optimal \\
+     & 2{,}000--5{,}000 & 2 & Suboptimal \\
+     & $>$5{,}000 & 1 & Unsuitable \\
+    \addlinespace
+    \multirow{2}{*}{Geological unit} & Hualalai Volcanics, Kau Basalt & 1 & Suitable \\
+     & All others & 0 & Not suitable \\
+    \addlinespace
+    \multirow{2}{*}{Soil type (USDA Taxonomy)} & Andisols, Histosols & 1 & Suitable \\
+     & All others & 0 & Not suitable \\
+    \addlinespace
+    \multirow{4}{*}{Conservation District} & G (General), C (Undesignated) & 1.00 & Suitable \\
+     & R (Resource) & 0.75 & Restricted \\
+     & L (Limited) & 0.25 & Highly restricted \\
+     & P (Protective), SS (Special) & 0.00 & Unsuitable \\
+    \addlinespace
+    \multirow{2}{*}{Critical Habitat} & Critical habitat present & 0 & Unsuitable \\
+     & Not designated & 1 & Suitable \\
+    \addlinespace
+    \multirow{2}{*}{Dept.~of Defense land} & Military land & 0 & Unsuitable \\
+     & Other & 1 & Suitable \\
+    \addlinespace
+    \multirow{3}{*}{Land Use / Land Cover} & Urban, Water, Barren, Tundra, Snow (1\textasciitilde, 5\textasciitilde, 7\textasciitilde, 8\textasciitilde, 9\textasciitilde) & 0 & Unsuitable \\
+     & Agriculture, Rangeland (2\textasciitilde, 3\textasciitilde) & 1 & Suitable \\
+     & Forest, Wetland (4\textasciitilde, 6\textasciitilde) & 0.5 & Not preferred \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Weights in the Suitability Model}
+\label{sec:weights}
+
+\placeholder{Insert final weights assigned to each factor in the Suitability Modeler. Describe how weights were determined (expert judgement, literature, AHP, etc.). Justify relative importance of climate vs.\ static factors.}
+
+\subsection{Climate Scenarios}
+
+Three Shared Socio-economic Pathway (SSP) scenarios were used to represent the range of plausible mid-century climate futures:
+
+\begin{itemize}
+  \item \textbf{SSP1-2.6} --- optimistic scenario; strong mitigation, global warming limited to approximately 1.5--2\,°C above pre-industrial by 2100.
+  \item \textbf{SSP3-7.0} --- intermediate scenario; regional rivalry, moderate mitigation, warming of approximately 2--3\,°C by 2100.
+  \item \textbf{SSP5-8.5} --- pessimistic scenario; fossil-fuel-dominated development, warming exceeding 4\,°C by 2100.
+\end{itemize}
+
+Temperature and precipitation rasters for each scenario were sourced from the CHELSA dataset (\placeholder{cite CHELSA version and time slice, e.g.\ CHELSA v2.1, 2041--2070 mean}) and processed identically to the current-climate layers (see Section~\ref{sec:dam}).
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Data Action Model}
+\label{sec:dam}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Figure~\ref{fig:dam} provides the full Data Action Model (DAM) flowchart. Table~\ref{tab:dam_actions} describes every individual processing step; Table~\ref{tab:dam_intermediate} lists all intermediate and output datasets generated.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figures/dam_flowchart.png}
+  \caption{Data Action Model flowchart showing the complete analysis workflow from raw data acquisition to final suitability rasters. See Tables~\ref{tab:dam_actions} and~\ref{tab:dam_intermediate} for step and dataset descriptions.}
+  \label{fig:dam}
+\end{figure}
+
+% ── Table 1: Action description ───────────────────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}cp{2.2cm}p{4.5cm}p{9.5cm}@{}}
+  \caption{Action description table --- all analysis steps in the Data Action Model.}
+  \label{tab:dam_actions}\\
+  \toprule
+  \textbf{Step} & \textbf{Type} & \textbf{Operation} & \textbf{Objective} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{4}{c}{\itshape (Table~\ref{tab:dam_actions} continued)}\\
+  \toprule
+  \textbf{Step} & \textbf{Type} & \textbf{Operation} & \textbf{Objective} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  % ─── PRECIPITATION ───────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Precipitation} (applied to current, SSP1-2.6, SSP3-7.0, and SSP5-8.5 rasters)}} \\
+  \addlinespace
+  1 & Transformation & Clip Raster & Restrict all precipitation rasters (current + SSP1-2.6 + SSP3-7.0 + SSP5-8.5) to the Hawai\okina i study area to remove irrelevant data and ensure spatial consistency. \\
+  2 & Transformation & Project Raster (if needed); Resample; Set Snap Raster & Ensure all rasters share the same CRS, spatial resolution, and cell alignment as the common raster framework. \\
+  3 & Transformation & Unit check and conversion (Raster Calculator if needed) & Convert monthly values (mm/month) to annual precipitation (mm/year). Thresholds for 3-tier scoring are applied at the annual scale. \\
+  4 & Processing & Reclassify Raster & Reclassify annual precipitation to 3-tier suitability scores: $<$1{,}100\,mm/yr $\rightarrow$ 1; 1{,}100--1{,}600\,mm/yr $\rightarrow$ 2; 1{,}600--1{,}800\,mm/yr $\rightarrow$ 3; 1{,}800--2{,}000\,mm/yr $\rightarrow$ 2; $>$2{,}000\,mm/yr $\rightarrow$ 1. Thresholds from \citet{Alves2020}. \\
+  5 & Transformation & Copy / Export Raster (separate output per scenario) & Store each precipitation suitability raster separately to enable scenario comparison and overlay analysis. \\
+  \addlinespace
+  % ─── TEMPERATURE ─────────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Temperature} (applied to current, SSP1-2.6, SSP3-7.0, and SSP5-8.5 rasters)}} \\
+  \addlinespace
+  6 & Transformation & Clip Raster & Restrict all temperature rasters (current + SSP1-2.6 + SSP3-7.0 + SSP5-8.5) to the Hawai\okina i study area. \\
+  7 & Transformation & Project Raster (if needed); Resample; Set Snap Raster & Ensure all temperature rasters share the same CRS, resolution, and alignment. \\
+  8 & Transformation & Unit check and conversion (Raster Calculator if needed) & Convert from tenths of °C (°C $\times$ 10) to degrees Celsius if stored in that convention. \\
+  9 & Processing & Reclassify Raster & Reclassify temperature to 3-tier suitability scores: $<$15\,°C $\rightarrow$ 1; 15--18\,°C $\rightarrow$ 2; 18--23\,°C $\rightarrow$ 3; 23--26\,°C $\rightarrow$ 2; $>$26\,°C $\rightarrow$ 1. \\
+  10 & Transformation & Copy / Export Raster (separate output per scenario) & Store each temperature suitability raster separately. \\
+  \addlinespace
+  % ─── ROADS ───────────────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Roads}}} \\
+  \addlinespace
+  11 & Selection & Select Layer By Attribute & Filter Roads\_-\_Hawaii\_County to retain only roads with class A35, A31, or Q05, removing local roads and retaining only those relevant to accessibility for plantation sites. \\
+  12 & Transformation & Distance Accumulation & Create a raster where each cell value represents the Euclidean distance to the nearest retained road. \\
+  13 & Processing & Reclassify & Reclassify distance raster to 3-tier suitability: $<$2{,}000\,m $\rightarrow$ 3 (optimal); 2{,}000--5{,}000\,m $\rightarrow$ 2 (suboptimal); $>$5{,}000\,m $\rightarrow$ 1 (unsuitable). \\
+  \addlinespace
+  % ─── GEOLOGICAL UNITS ────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Geological units}}} \\
+  \addlinespace
+  14 & Selection & Select by Attribute & In Geological\_Units, select only records located on the Island of Hawai\okina i. \\
+  15 & Processing by overlay & Clip & Clip selected records to the study area boundary. \\
+  16 & Transformation & Feature to Raster (value field = unit name) & Convert the clipped vector dataset to raster format required for suitability analysis, using the geological unit name as the value field. \\
+  17 & Processing & Reclassify Raster & Convert geological unit names to binary suitability scores: Hualalai Volcanics $\rightarrow$ 1 (suitable); Kau Basalt $\rightarrow$ 1 (suitable); all others $\rightarrow$ 0 (not suitable). \\
+  18 & Transformation & Copy / Export Raster & Store geological suitability raster for overlay analysis. \\
+  \addlinespace
+  % ─── SOIL TYPE ───────────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Soil type (USDA Taxonomy)}}} \\
+  \addlinespace
+  19 & Query & Join (value field = Number) & Join TAXOUSDA\_250m\_ll.tif.csv to TAXOUSDA\_250m\_ll.tif on the numeric value field to link raster cell values to generic soil type names. \\
+  20 & Transformation & Clip Raster & Clip joined raster to the Island of Hawai\okina i. \\
+  21 & Processing & Reclassify Raster & Convert generic soil type names to binary suitability scores: Andisols $\rightarrow$ 1; Histosols $\rightarrow$ 1; all others $\rightarrow$ 0. \\
+  22 & Transformation & Copy / Export Raster & Store soil type suitability raster. \\
+  \addlinespace
+  % ─── CONSERVATION DISTRICTS ──────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Conservation Districts}}} \\
+  \addlinespace
+  23 & Query & Select by Attribute & In dataset 0G, select records on the Island of Hawai\okina i and clip to study area. \\
+  24 & Transformation & Polygon to Raster & Convert conservation district polygons to raster format. \\
+  25 & Processing & Reclassify Raster & Assign suitability scores by district code: G (General) or C (Undesignated) $\rightarrow$ 1.00; R (Resource) $\rightarrow$ 0.75; L (Limited) $\rightarrow$ 0.25; P (Protective) or SS (Special) $\rightarrow$ 0. \\
+  26 & Transformation & Export Raster & Store conservation district suitability raster. \\
+  \addlinespace
+  % ─── CRITICAL HABITAT ────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Critical Habitat}}} \\
+  \addlinespace
+  27 & Query & Select by Attribute & In dataset 0H, select records on the Island of Hawai\okina i. \\
+  28 & Transformation & Polygon to Raster & Convert critical habitat polygons to raster. Suitability score of 0 is inherent in the unmodified dataset (designated habitat = unsuitable for development). \\
+  29 & Transformation & Export Raster & Store critical habitat raster. \\
+  \addlinespace
+  % ─── DEPT OF DEFENSE ─────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Department of Defense Lands}}} \\
+  \addlinespace
+  30 & Query & Select by Attribute & In dataset 0I, select records on the Island of Hawai\okina i and clip to study area. \\
+  31 & Transformation & Polygon to Raster & Convert DoD land polygons to raster. \\
+  32 & Processing & Reclassify Raster & Assign suitability score of 0 to all DoD land (unsuitable). \\
+  33 & Transformation & Export Raster & Store DoD land suitability raster. \\
+  \addlinespace
+  % ─── LAND USE / LAND COVER ───────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Land Use / Land Cover (LULC)}}} \\
+  \addlinespace
+  34 & Query & Select by Attribute & In dataset 0J, select records on the Island of Hawai\okina i and clip to study area. \\
+  35 & Transformation & Polygon to Raster & Convert LULC polygons to raster. \\
+  36 & Processing & Reclassify Raster & Assign suitability scores by land cover class: Urban, Water, Barren, Tundra, Permanent Snow (1\textasciitilde, 5\textasciitilde, 7\textasciitilde, 8\textasciitilde, 9\textasciitilde) $\rightarrow$ 0; Agriculture, Rangeland (2\textasciitilde, 3\textasciitilde) $\rightarrow$ 1; Forest, Wetland (4\textasciitilde, 6\textasciitilde) $\rightarrow$ 0.5. \\
+  37 & Transformation & Export Raster & Store LULC suitability raster. \\
+  \addlinespace
+  % ─── ELEVATION ───────────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Elevation}}} \\
+  \addlinespace
+  38 & Transformation & Topo to Raster & Convert the Hawaii\_100\_Foot\_Contours polyline dataset to a continuous elevation raster. \\
+  39 & Processing & Raster Calculator & Remove negative elevation values (ocean floor); retain only cells $\geq$ 0\,m. \\
+  40 & Processing & Raster Calculator / Reclassify & Reclassify elevation to 3-tier suitability scores: $<$900\,m $\rightarrow$ 1; 900--1{,}400\,m $\rightarrow$ 2; 1{,}400--1{,}800\,m $\rightarrow$ 3; 1{,}800--2{,}500\,m $\rightarrow$ 2; $>$2{,}500\,m $\rightarrow$ 1. \\
+  41 & Transformation & Copy / Export Raster & Store elevation suitability raster. \\
+  \addlinespace
+  % ─── SUITABILITY MODELLING ───────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Suitability Modelling} (repeated for each of the four climate scenarios)}} \\
+  \addlinespace
+  42 & Processing & Suitability Modeler --- climate sub-model & Combine temperature and precipitation suitability rasters for a given scenario into an intermediate climate suitability layer, stored for use in step 43. \\
+  43 & Processing & Suitability Modeler --- final model & Combine all factor suitability rasters (climate sub-model + elevation + roads + soils + geology + conservation + habitat + DoD + LULC) using scenario-specific weights to produce the final suitability raster for each projection. \\
+\end{longtable}
+\end{landscape}
+
+% ── Table 2: Intermediate dataset description ─────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}lp{4.5cm}p{3.5cm}p{2.5cm}p{5.5cm}p{2cm}@{}}
+  \caption{Intermediate and output dataset description table (generated during the Data Action Model workflow).}
+  \label{tab:dam_intermediate}\\
+  \toprule
+  \textbf{ID} & \textbf{Dataset name} & \textbf{Attribute} & \textbf{Measurement scale} & \textbf{Attribute domain} & \textbf{Structure} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{6}{c}{\itshape (Table~\ref{tab:dam_intermediate} continued)}\\
+  \toprule
+  \textbf{ID} & \textbf{Dataset name} & \textbf{Attribute} & \textbf{Measurement scale} & \textbf{Attribute domain} & \textbf{Structure} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  % Precip
+  1A & Clipped current precip. & Precipitation (mm/month) & Ratio & 0--$\infty$ & Raster \\
+  2A & Clipped SSP precip. rasters & Precipitation (mm/month) & Ratio & 0--$\infty$ & Raster \\
+  3A & Annual precip. rasters & Precipitation (mm/year) & Ratio & 0--$\infty$ & Raster \\
+  4A & Precip.~suitability (current) & Precipitation suitability & Ordinal & 1 (unsuit.: $<$1{,}100 or $>$2{,}000\,mm); 2 (subopt.: 1{,}100--1{,}600 or 1{,}800--2{,}000\,mm); 3 (opt.: 1{,}600--1{,}800\,mm) & Raster \\
+  5A & Precip.~suitability (SSP scenarios) & Precipitation suitability & Ordinal & As 4A & Raster \\
+  \addlinespace
+  % Temp
+  6A & Clipped current temp. & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  7A & Clipped SSP temp.~rasters & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  8A & Converted temp.~rasters (°C) & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  9A & Temp.~suitability (current) & Temperature suitability & Ordinal & 1 (unsuit.: $<$15 or $>$26\,°C); 2 (subopt.: 15--18 or 23--26\,°C); 3 (opt.: 18--23\,°C) & Raster \\
+  10A & Temp.~suitability (SSP scenarios) & Temperature suitability & Ordinal & As 9A & Raster \\
+  \addlinespace
+  % Roads
+  11A & Highways\_Hawaii & Roads & Binary & 1 (HWY / HIGHWAY class roads) & Vector \\
+  12A & Distance from roads & Distance (m) & Ratio & 0--$\infty$ & Raster \\
+  13A & Road suitability & Road proximity suitability & Ordinal & 1 (unsuitable); 2 (suboptimal); 3 (optimal) & Raster \\
+  \addlinespace
+  % Geology
+  18A & Geological\_Units (Hawai\okina i selection) & Island & Binary & 0 (not Hawai\okina i); 1 (Hawai\okina i) & Vector \\
+  19A & Geological\_UnitsClip & Geological unit & Nominal & All units & Vector \\
+  20A & Raster\_GeoClip & Geological unit & Nominal & All units & Raster \\
+  21A & Reclass\_Raster\_GeoClip & Geological unit suitability & Binary & 0 (others); 1 (Kau Basalt, Hualalai Volcanics) & Raster \\
+  22A & Reclass\_Raster\_GeoClip (exported) & Geological unit suitability & Binary & As 21A & Raster \\
+  \addlinespace
+  % Soil
+  23A & TAXOUSDA\_250m\_ll (joined) & Generic soil name & Nominal & All & Raster \\
+  24A & TAXOUSDA\_250m\_ll\_Clip & Generic soil name & Nominal & All & Raster \\
+  25A & Reclass\_TAXClip & Soil suitability & Binary & 0 (others); 1 (Andisols, Histosols) & Raster \\
+  26A & Reclass\_TAXClip (exported) & Soil suitability & Binary & As 25A & Raster \\
+  \addlinespace
+  % Conservation
+  27A & Conservation\_Districts\_Hawaii & District code & Nominal & G, C, R, L, P, SS & Vector \\
+  28A & CD\_Hawaii\_Raster & District code & Nominal & G, C, R, L, P, SS & Raster \\
+  29A & CD\_Suitability & Conservation suitability & Categorical & 0 (P, SS); 0.25 (L); 0.75 (R); 1 (G, C) & Raster \\
+  30A & CD\_Suitability (exported) & Conservation suitability & Categorical & As 29A & Raster \\
+  \addlinespace
+  % Critical habitat
+  31A & Critical\_Habitat\_Hawai\okina i & Critical habitat & Categorical & 0 (critical habitat) & Vector \\
+  32A & CHR & Critical habitat & Categorical & 0 (critical habitat) & Raster \\
+  33A & CHR (exported) & Critical habitat & Categorical & As 32A & Raster \\
+  \addlinespace
+  % DoD
+  34A & DeptofDefense\_Hawaii & Land use & Nominal & Base\_Name & Vector \\
+  35A & DDR & Land use & Nominal & Base\_Name & Raster \\
+  36A & ArmyArea & DoD suitability & Categorical & 0 (military land) & Raster \\
+  37A & ArmyArea (exported) & DoD suitability & Categorical & As 36A & Raster \\
+  \addlinespace
+  % LULC
+  38A & LandUseLandCover & Land use & Nominal & 1\textasciitilde~(Urban); 2\textasciitilde~(Agri.); 3\textasciitilde~(Range.); 4\textasciitilde~(Forest); 5\textasciitilde~(Water); 6\textasciitilde~(Wetland); 7\textasciitilde~(Barren); 8\textasciitilde~(Tundra); 9\textasciitilde~(Snow) & Vector \\
+  39A & USLUR & Land use & Nominal & As 38A & Raster \\
+  40A & LandUseSuitability & LULC suitability & Categorical & 0 (1\textasciitilde,5\textasciitilde,7\textasciitilde,8\textasciitilde,9\textasciitilde); 0.5 (4\textasciitilde,6\textasciitilde); 1 (2\textasciitilde,3\textasciitilde) & Raster \\
+  41A & LandUseSuitability (exported) & LULC suitability & Categorical & As 40A & Raster \\
+  \addlinespace
+  % Elevation
+  42A & Elevation raster (raw) & Elevation & Ratio & $-$2{,}562--13{,}493\,ft & Raster \\
+  43A & Positive elevation raster & Elevation & Ratio & 0--13{,}493\,ft & Raster \\
+  44A & Elevation suitability raster & Elevation suitability & Ordinal & 1 (unsuit.: $<$900 or $>$2{,}500\,m); 2 (subopt.: 900--1{,}400 or 1{,}800--2{,}500\,m); 3 (opt.: 1{,}400--1{,}800\,m) & Raster \\
+  45A & Elevation suitability (exported) & Elevation suitability & Ordinal & As 44A & Raster \\
+  \addlinespace
+  % Final outputs
+  46A & Climate sub-model (per scenario) & Climate suitability & Ratio & --- & Raster \\
+  47A & Final suitability (per scenario) & Overall suitability & Ratio & --- & Raster \\
+\end{longtable}
+\end{landscape}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Results}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Individual Factor Layers}
+
+The following figures show the suitability classification maps produced for each individual factor layer before combination in the Suitability Modeler.
+
+\subsubsection{Roads}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/result_roads.png}
+  \caption{Road proximity suitability map for the Island of Hawai\okina i. Scores: 3 (optimal, $<$2{,}000\,m), 2 (suboptimal, 2{,}000--5{,}000\,m), 1 (unsuitable, $>$5{,}000\,m).}
+  \label{fig:result_roads}
+\end{figure}
+
+\placeholder{Add short interpretive text describing spatial pattern of road accessibility, which parts of the island are within optimal distance, etc.}
+
+\subsubsection{Elevation}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/result_elevation.png}
+  \caption{Elevation suitability map for the Island of Hawai\okina i. Scores: 3 (optimal, 1{,}400--1{,}800\,m), 2 (suboptimal), 1 (unsuitable).}
+  \label{fig:result_elevation}
+\end{figure}
+
+\placeholder{Add short interpretive text.}
+
+\subsubsection{Land Use / Land Cover}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/result_lulc.png}
+  \caption{Land Use / Land Cover suitability map for the Island of Hawai\okina i.}
+  \label{fig:result_lulc}
+\end{figure}
+
+\placeholder{Add short interpretive text.}
+
+\subsubsection{Soil Type}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/result_soil.png}
+  \caption{Soil type suitability map (USDA Taxonomy) for the Island of Hawai\okina i. Andisols and Histosols are classified as suitable (1); all others as not suitable (0).}
+  \label{fig:result_soil}
+\end{figure}
+
+\placeholder{Add short interpretive text.}
+
+\subsection{Final Suitability Maps by Climate Scenario}
+
+Figure~\ref{fig:result_current} shows the final weighted suitability map under current climate conditions. Figures~\ref{fig:result_optimistic}--\ref{fig:result_pessimistic} show results under the three SSP scenarios.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/climate_current.jpg}
+  \caption{Final suitability map under current climate conditions. The colour ramp runs from red (unsuitable) through yellow (suboptimal) to green (optimal). \placeholder{Add data on percentage/area of each class.}}
+  \label{fig:result_current}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/climate_optimistic.jpg}
+  \caption{Final suitability map under SSP1-2.6 (optimistic scenario). \placeholder{Add interpretive text and area statistics.}}
+  \label{fig:result_optimistic}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/climate_intermediate.jpg}
+  \caption{Final suitability map under SSP3-7.0 (intermediate scenario). \placeholder{Add interpretive text and area statistics.}}
+  \label{fig:result_intermediate}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/climate_pessimistic.jpg}
+  \caption{Final suitability map under SSP5-8.5 (pessimistic scenario). \placeholder{Add interpretive text and area statistics.}}
+  \label{fig:result_pessimistic}
+\end{figure}
+
+\subsection{Change in Suitable Area Across Scenarios}
+
+\placeholder{Insert table and/or bar chart comparing total area (km\textsuperscript{2} or \%) in each suitability class (unsuitable / suboptimal / optimal) for each of the four scenarios (current, SSP1-2.6, SSP3-7.0, SSP5-8.5). Derive from ArcGIS raster attribute table or zonal statistics.}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Discussion}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Spatial Patterns and Drivers of Suitability}
+
+\placeholder{Interpret the current-climate suitability map. Which parts of the island are most suitable and why (elevation band, Kona district, windward vs.\ leeward)? How do the individual factor layers combine spatially?}
+
+\subsection{Projected Shifts Under Climate Change}
+
+The three SSP projections indicate \placeholder{describe direction and magnitude of shift --- e.g.\ upslope migration of suitable area, contraction of optimal zone, etc.}. A general increase in mean temperature is expected across all scenarios, with the most pronounced warming under SSP5-8.5. Because the optimal temperature window for \textit{C.~arabica} (18--23\,°C) is relatively narrow, even moderate warming can shift the lower elevation boundary of suitable area upslope.
+
+Increased precipitation variability under warmer scenarios may also affect suitability independently of the mean. \placeholder{Discuss projected precipitation trends for Hawai\okina i and how they interact with the 1{,}600--1{,}800\,mm optimal window.}
+
+\subsection{Water and Irrigation Considerations}
+
+The growing of \textit{C.~arabica} under conventional plantation management has high irrigation requirements, supplementing what precipitation alone provides \citep{DaMatta2006}. Groundwater recharge declines when land cover shifts from native forest to agriculture, further stressing freshwater availability on Hawai\okina i. A census projection analysis incorporating expected water consumption, irrigation demand, and freshwater availability metrics under different land-use scenarios would be required to fully assess the hydrological sustainability of expanding coffee production \citep{DellaPeruta2025}.
+
+\subsection{Pollinator Risk}
+
+There is evidence that pollinators --- essential for consistent \textit{C.~arabica} yields --- may decline or shift their range under climate change. \citet{Imbach2017} project serious pollinator declines in South American coffee-producing regions; analogous risks may apply in Hawai\okina i. This uncertainty should be factored into any planning assessment.
+
+\subsection{Agroforestry as a Mitigation Strategy}
+
+Agroforestry systems have shown significant increases in biodiversity, insect pollinator populations, and land-use water retention compared to open monoculture \citep{GrandezAlberca2025}. Implementing shade-grown or mixed systems could buffer the direct climatic stressors identified in this analysis. Financial incentives, such as those demonstrated in Honduras where local governments stimulate uptake through direct funding and regulated price premiums for sustainably certified coffee, provide a viable policy mechanism \citep{QuinonezCamarillo2025}.
+
+\subsection{Limitations}
+
+\begin{itemize}
+  \item Suitability scores are derived from a static snapshot of projected mid-century climate and do not capture interannual variability or extreme events.
+  \item The analysis does not include a hydrological model; water availability is treated only as a function of precipitation suitability.
+  \item Pollinator distribution under future climate is not spatially modelled.
+  \item \placeholder{Other limitations: spatial resolution of CHELSA vs.\ local topographic variation; quality / vintage of land-use and conservation datasets; uncertainty in CMIP6 ensemble spread.}
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\placeholder{Write after results are finalised. Should answer the three research objectives stated in the Introduction: (1) current suitable area; (2) projected shifts under SSP1-2.6, SSP3-7.0, SSP5-8.5; (3) spatial trends and mitigation options. Keep it direct --- 1 paragraph, no new information.}
+
+% ══════════════════════════════════════════════════════════════════════════════
+% References
+% ══════════════════════════════════════════════════════════════════════════════
+
+\bibliography{references}
+
+% ══════════════════════════════════════════════════════════════════════════════
+% Appendices
+% ══════════════════════════════════════════════════════════════════════════════
+
+\appendix
+\section{Team Logbook}
+\label{app:logbook}
+
+\placeholder{Insert team meeting log: dates, attendees, agenda items, decisions made. One table per meeting or a single running table.}
+
+\section{Individual Contributions}
+\label{app:contributions}
+
+\placeholder{Brief statement from / about each team member describing their specific contributions to the project.}
 
 \end{document}

@@ -1,0 +1,18 @@
+# Place all figure files in this folder.
+# Expected files:
+#
+# Input / context:
+#   coffea_arabica_distribution.png   -- global distribution map (Fig 1)
+#   dam_flowchart.png                 -- Data Action Model flowchart (Fig 2)
+#
+# Individual factor layers:
+#   result_roads.png                  -- Road proximity suitability
+#   result_elevation.png              -- Elevation suitability
+#   result_lulc.png                   -- Land Use / Land Cover suitability
+#   result_soil.png                   -- Soil type suitability
+#
+# Final suitability maps:
+#   climate_current.jpg               -- Current climate (already available)
+#   climate_optimistic.jpg            -- SSP1-2.6 (already available)
+#   climate_intermediate.jpg          -- SSP3-7.0 (already available)
+#   climate_pessimistic.jpg           -- SSP5-8.5 (already available)
