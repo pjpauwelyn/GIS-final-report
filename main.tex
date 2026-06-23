@@ -1,0 +1,569 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[british]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue}
+\usepackage{natbib}
+\bibliographystyle{apalike}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{microtype}
+\usepackage{pdflscape}
+\usepackage{rotating}
+\usepackage{seqsplit}
+
+% ── Header / footer ───────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Coffee Suitability on Hawai\okina i}
+\lhead{GIS Group Project}
+\cfoot{\thepage}
+
+% ── Custom okina character ─────────────────────────────────────────────────────
+\newcommand{\okina}{\textquoteleft}
+
+% ── Breakable filename helper (allows wrapping at underscores) ─────────────────
+\newcommand{\fn}[1]{\seqsplit{#1}}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ── Title page ────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Large\bfseries Geo-information Science and Remote Sensing\\[0.4em]
+  Data Acquisition and Management: Group Project\par}
+  \vspace{2cm}
+  {\LARGE\bfseries Coffee Bean Production in Hawai\okina i\\[0.3em]
+  in a Changing Climate\par}
+  \vspace{1.5cm}
+  {\large\itshape Suitability modelling of \textit{Coffea arabica} cultivation\\[0.2em]
+  on the Island of Hawai\okina i under current and projected climate scenarios\par}
+  \vspace{2cm}
+  {\normalsize
+  Ella Jansma (s1114516)\\[0.2em]
+  Max Claessens (s1097783)\\[0.2em]
+  Gijs Bomert (s1117543)\\[0.2em]
+  Jochem Oude Groeniger (s1141308)\\[0.2em]
+  Pieterjan Pauwelyn (s1089656)\par}
+  \vspace{1.5cm}
+  {\normalsize Wageningen University \& Research\\[0.2em]
+  \today\par}
+\end{titlepage}
+
+% ── Table of contents ─────────────────────────────────────────────────────────
+\newpage
+\noindent\textbf{Keywords:} \textit{Coffea arabica}, ArcGIS Pro, climate projections, suitability model.
+\vspace{1em}
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Coffee is one of the most widely consumed beverages in the world, produced from the roasted seeds of plants in the \textit{Coffea} genus. \textit{Coffea arabica} is the most commonly cultivated species, accounting for roughly 60--70\% of global production \citep{Scott2015}. In its natural environment, the species grows in seasonally dry tropical highland forests, with native populations restricted to parts of East Africa, including southwestern Ethiopia, South Sudan, and northern Kenya; it has since been introduced to climatically suitable regions across the globe \citep{PlantskewArabica} (Figure~\ref{fig:arabica_distribution}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{coffea_arabica_distribution.png}
+  \caption{Natural distribution of \textit{Coffea arabica} (green) and the regions where it has been introduced due to favourable conditions (purple) \citep{PlantskewArabica}.}
+  \label{fig:arabica_distribution}
+\end{figure}
+
+\textit{Coffea arabica} is typically cultivated in tropical highland regions with moderate, relatively stable temperatures. The species performs best within a mean annual temperature range of approximately 18--21\,°C; above roughly 23\,°C, fruit development and ripening accelerate, which reduces bean quality, although intensively managed cultivars have achieved satisfactory yields up to 24--25\,°C \citep{DaMatta2006}. Temperature is therefore one of the principal factors constraining where Arabica coffee can be successfully grown. Elevation is closely tied to these temperature requirements, as it is one of the primary factors moderating local climate for plant growth. The optimal altitude range for \textit{C.~arabica} cultivation has been established at approximately 800--2{,}000\,m above sea level \citep{Liu2025}.
+
+Climatic conditions shape the plant across its full developmental cycle, influencing not only the mature life stage but also germination and flowering. Germination is strongly temperature-dependent: under optimal conditions of around 30\,°C, seeds germinate within approximately three weeks, whereas at 17\,°C this process can take up to three months \citep{Tummakate1991}. Flowering follows a related but distinct climatic logic, as it is triggered not by rainfall itself but by a preceding period of soil moisture deficit; once this deficit is established, a single rainfall event of 10\,mm or more is generally sufficient to break flower bud dormancy, with flowering occurring within roughly 10 to 14 days \citep{RendonSaenz2025}. At a regional scale, this requirement is reflected in the multi-month dry seasons, often two to four months in length, that characterise major coffee-growing climates \citep{RendonSaenz2025}.
+
+Soil characteristics are similarly influential, particularly for root development and water management. Arabica coffee performs best in deep, well-drained, slightly acidic soils with high organic matter content, which together support nutrient availability and water retention without causing waterlogging; soil structure and drainage capacity are therefore considered critical determinants of site suitability for cultivation \citep{DaMatta2006}.
+
+\subsection{Climate Change Pressures}
+
+Arabica coffee's narrow climatic tolerance makes it particularly vulnerable to climate change, and modelling studies project that this vulnerability will increasingly affect production in major growing regions. In Brazil, the world's largest Arabica producer, climate projections under future warming scenarios indicate significant effects on coffee phenology and yield, with shifts in both flowering timing and fruit maturation expected across the country's main growing regions by the second half of the century \citep{deFreitas2024}.
+
+At a broader scale, process-based modelling suggests that Arabica yields could decline by 23 to 35\% in Latin America and 16 to 21\% in Africa under continued climate change, with production likely shifting toward higher-altitude and lower-latitude areas as current regions become less suitable \citep{DellaPeruta2025}. Consistent with this, projections for Peru indicate that highly suitable growing areas could contract alongside an upslope shift toward higher elevations under future emissions \citep{Zabaleta2026}. Taken together, these findings indicate that the climatic conditions associated with successful Arabica cultivation are projected to become increasingly unstable, raising the question of whether currently suitable regions will remain viable for coffee production in the coming decades.
+
+\subsection{Coffee in Hawai\okina i}
+
+Coffee cultivation in Hawai\okina i has developed into a distinctive agricultural system shaped by both historical introduction and highly favourable environmental conditions. Although coffee cultivation in Hawai\okina i dates back to the early nineteenth century, its long-term success is largely attributable to the combination of volcanic soils, moderate elevations, and stable tropical climates that are particularly suitable for \textit{C.~arabica} cultivation. Productive coffee-growing regions benefit from these well-drained, mineral-rich volcanic substrates and from climatic conditions characterised by relatively consistent temperatures and orographic rainfall patterns \citep{Hamilton2019}.
+
+Recent climate projections indicate that Hawai\okina i is likely to experience significant declines in rainfall and shifts in temperature regimes over the twenty-first century, with statistically downscaled models projecting notable reductions in precipitation across the islands \citep{Timm2015}. Aside from the general effect of temperature increase, which, as discussed, influences coffee bean production negatively, an increase in temperature can also influence pest dynamics. In particular, rising temperatures have been shown to accelerate the life cycle and increase the population pressure of the coffee berry borer (\textit{Hypothenemus hampei}), a major pest in Hawaiian coffee systems, thereby reducing yield and quality \citep{Hamilton2019, Johnson2024}. These interacting pressures highlight the vulnerability of Hawai\okina i's coffee-growing regions under future climate conditions.
+
+This study therefore aims to determine where Arabica coffee can be most successfully cultivated across the Island of Hawai\okina i under both current environmental conditions and projected future climate scenarios. Specifically, it sets out to: (i) identify the most suitable locations for \textit{C.~arabica} cultivation under current climate; (ii) assess how suitability shifts under three CMIP6 climate scenarios (SSP1-2.6, SSP3-7.0, and SSP5-8.5) projected to mid-century (2041--2070); and (iii) evaluate the resulting spatial trends in suitable land and outline broad mitigation considerations.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Materials and Methods}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Overall Approach and Design Rationale}
+
+The workflow follows a multi-criteria suitability analysis in ArcGIS Pro, structured explicitly around the Data Action Model (DAM). The DAM flowchart and tables illustrate the exact analysis steps and can be found in Appendices~\ref{app:dam_flowchart} and~\ref{app:dam_tables}, respectively. The DAM separates the work into three linked components: (i) preparation and standardisation of all input datasets, (ii) construction of factor-specific suitability layers, and (iii) aggregation of these layers into a climate sub-model and final suitability maps for each scenario.
+
+Suitability is represented on simple, interpretable scales. Climatic and elevation factors use an ordinal 1--3 coding (1\,=\,unsuitable, 2\,=\,suboptimal, 3\,=\,optimal), which matches the narrow physiological thresholds of \textit{Coffea arabica}. The conservation and land-use factors use fractional scores between 0 and 1, allowing legal and ecological restrictions to be represented as graded penalties rather than a strict all-or-nothing mask (Section~\ref{sec:conservation}).
+
+\subsection{Factor Selection and Thresholds}
+\label{sec:criteria}
+
+Six main groups of criteria were used: climate (temperature and precipitation), elevation, proximity to roads, soil, conservation and legal constraints (conservation districts, critical habitat, Department of Defense land), and land use / land cover. Climate thresholds follow published ranges for \textit{Coffea arabica}; the remaining criteria reflect the assignment brief and available datasets, with conservative assumptions where explicit guidance is lacking. Table~\ref{tab:criteria} summarises the scoring scheme applied to each factor.
+
+\subsubsection{Precipitation}
+
+Annual totals were derived from CHELSA monthly rasters and reclassified into five classes, with optimal suitability between 1{,}600 and 1{,}800\,mm\,yr\textsuperscript{-1} and declining suitability outside this range \citep{DaMatta2006}. These thresholds are based on studies reporting optimal rainfall and dry-season requirements for Arabica, which generally place productive systems between roughly 1{,}100 and 1{,}800\,mm\,yr\textsuperscript{-1}. Values substantially below this range risk water stress, while very high rainfall can increase disease pressure and reduce yield stability.
+
+\subsubsection{Temperature}
+
+Temperature suitability was derived from mean annual temperature rasters. The optimal class is set at 18--23\,°C, with suboptimal performance between 15--18\,°C and 23--26\,°C, and unsuitability below 15\,°C or above 26\,°C \citep{DaMatta2006}. This reflects experimental and field evidence that Arabica performs best in cooler tropical highland climates, with quality and yield decreasing under sustained warming and growth suppression at lower temperatures. The relatively narrow optimal band makes the model sensitive to modest changes in mean temperature.
+
+\subsubsection{Elevation}
+
+Elevation was converted from contour data into a continuous raster, cleaned of negative values, and reclassified using a similar 1--3 scheme. Optimal elevation was set between 1{,}400 and 1{,}800\,m, with suboptimal conditions between 900--1{,}400\,m and 1{,}800--2{,}500\,m, and unsuitability below 900\,m and above 2{,}500\,m. This band approximates the combination of cooler temperatures and reduced frost risk typical for high-quality Arabica and aligns with known elevation ranges of successful highland coffee systems \citep{Liu2025}.
+
+\subsubsection{Roads}
+
+Proximity to major roads was modelled using a distance raster derived from selected highway classes, then reclassified so that sites within 2{,}000\,m are optimal, 2{,}000--5{,}000\,m suboptimal, and more than 5{,}000\,m unsuitable. This criterion does not represent a strict biophysical limit but captures the practical importance of transport access for plantation establishment, input delivery, and export logistics, which is particularly relevant in a remote island context.
+
+\subsubsection{Soil}
+
+Soil suitability was based on USDA Taxonomy classes derived from the TAXOUSDA raster and its lookup table. Andisols, Ultisols, and Inceptisols were treated as the most optimal. Andisols were favoured for their high organic matter content, excellent water retention, slight acidity, and high mineral content arising from their volcanic origin. Ultisols are normally poorly suited to agriculture due to their high acidity and low nutrient status, but with liming and fertiliser they become very suitable for coffee cultivation. Oxisols were included for their physical structure, which allows good drainage, but also require fertilisation to compensate for their low nutrient content. Aridisols and Histosols were considered unsuitable, the former due to alkalinity and a lack of moisture, organic matter, and nutrients, the latter due to poor drainage, as coffee requires well-drained soils. All other soil orders were considered suboptimal.
+
+\subsubsection{Conservation and Military Land}
+\label{sec:conservation}
+
+Conservation districts, critical habitat, and Department of Defense lands were included to ensure that the final maps reflect legal and ecological constraints rather than only agronomic potential. Conservation districts were given fractional scores from 1 (General and Undesignated) to 0 (Protective, Special), allowing the model to represent varying levels of restriction without imposing an all-or-nothing mask. Critical habitat and military lands were treated as fully unsuitable, effectively removing them from consideration in the final maps.
+
+\subsubsection{Land Use / Land Cover}
+
+Land use / land cover was reclassified into three broad suitability levels. Agricultural and rangeland classes were considered suitable (1), urban, water, barren, tundra, and permanent snow classes unsuitable (0), and forest and wetland assigned an intermediate value (0.5). The strict exclusion of urban and water reflects obvious incompatibility with new coffee plantations. Forest and wetland are down-weighted but not fully excluded to acknowledge both their ecological value and the possibility of agroforestry or carefully managed conversion; this is the only purely design-based choice not prescribed in the assignment and is intended to be conservative while still allowing scenario exploration.
+
+\begin{table}[H]
+  \centering
+  \caption{Suitability scoring scheme applied to each factor layer.}
+  \label{tab:criteria}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabularx}{\textwidth}{@{}lXcc@{}}
+    \toprule
+    \textbf{Factor} & \textbf{Threshold / class} & \textbf{Score} & \textbf{Class label} \\
+    \midrule
+    \multirow{5}{*}{Precipitation (mm/yr)} & $<$1{,}100 & 1 & Unsuitable \\
+     & 1{,}100--1{,}600 & 2 & Suboptimal \\
+     & 1{,}600--1{,}800 & 3 & Optimal \\
+     & 1{,}800--2{,}000 & 2 & Suboptimal \\
+     & $>$2{,}000 & 1 & Unsuitable \\
+    \addlinespace
+    \multirow{5}{*}{Temperature (°C)} & $<$15 & 1 & Unsuitable \\
+     & 15--18 & 2 & Suboptimal \\
+     & 18--23 & 3 & Optimal \\
+     & 23--26 & 2 & Suboptimal \\
+     & $>$26 & 1 & Unsuitable \\
+    \addlinespace
+    \multirow{5}{*}{Elevation (m)} & $<$900 & 1 & Unsuitable \\
+     & 900--1{,}400 & 2 & Suboptimal \\
+     & 1{,}400--1{,}800 & 3 & Optimal \\
+     & 1{,}800--2{,}500 & 2 & Suboptimal \\
+     & $>$2{,}500 & 1 & Unsuitable \\
+    \addlinespace
+    \multirow{3}{*}{Proximity to roads (m)} & $<$2{,}000 & 3 & Optimal \\
+     & 2{,}000--5{,}000 & 2 & Suboptimal \\
+     & $>$5{,}000 & 1 & Unsuitable \\
+    \addlinespace
+    \multirow{3}{*}{Soil type (USDA Taxonomy)} & Andisols, Ultisols, Inceptisols & 3 & Optimal \\
+     & Other soil orders & 2 & Suboptimal \\
+     & Aridisols, Histosols & 1 & Unsuitable \\
+    \addlinespace
+    \multirow{4}{*}{Conservation District} & G (General), C (Undesignated) & 1.00 & Suitable \\
+     & R (Resource) & 0.75 & Restricted \\
+     & L (Limited) & 0.25 & Highly restricted \\
+     & P (Protective), SS (Special) & 0.00 & Unsuitable \\
+    \addlinespace
+    \multirow{2}{*}{Critical Habitat} & Critical habitat present & 0 & Unsuitable \\
+     & Not designated & 1 & Suitable \\
+    \addlinespace
+    \multirow{2}{*}{Dept.~of Defense land} & Military land & 0 & Unsuitable \\
+     & Other & 1 & Suitable \\
+    \addlinespace
+    \multirow{3}{*}{Land Use / Land Cover} & Urban, Water, Barren, Tundra, Snow & 0 & Unsuitable \\
+     & Agriculture, Rangeland & 1 & Suitable \\
+     & Forest, Wetland & 0.5 & Not preferred \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Climate Scenarios and Projections}
+
+Four climate states were modelled: current conditions and three mid-century CMIP6 projections (SSP1-2.6, SSP3-7.0, SSP5-8.5) for the period 2041--2070. All climate rasters were derived from CHELSA products \citep{CHELSA} provided with the assignment and processed identically across scenarios. For each scenario, monthly precipitation rasters were converted to annual totals and reclassified using the same suitability thresholds as the baseline. Temperature rasters were checked for units, converted if needed, and reclassified using the fixed 18--23\,°C optimal window. The three SSP scenarios represent the range of plausible mid-century futures:
+
+\begin{itemize}
+  \item \textbf{SSP1-2.6}: optimistic scenario; strong mitigation, with global warming limited to approximately 1.5--2\,°C above pre-industrial levels by 2100.
+  \item \textbf{SSP3-7.0}: intermediate scenario; regional rivalry and moderate mitigation, with warming of approximately 3--4\,°C by 2100.
+  \item \textbf{SSP5-8.5}: pessimistic scenario; fossil-fuel-dominated development, with warming exceeding 4\,°C by 2100.
+\end{itemize}
+
+The use of a single consistent reclassification scheme across all four climate states assumes that the physiological thresholds of \textit{Coffea arabica} remain constant over the coming decades. This is a deliberate modelling choice: it isolates the effect of changing climate from any adaptation measures such as new cultivars or altered management, which are outside the scope of this assignment but could be explored in future work. The 2041--2070 time frame represents a mid-century average, smoothing interannual variability and focusing on long-term shifts rather than individual extreme years.
+
+\subsection{Weighting Scheme}
+
+\subsubsection{Climate Sub-model Weights}
+
+Within the climate sub-model, precipitation and temperature suitability are combined with equal weights of 50\% each. This choice reflects the joint control these variables exert on the climatic niche of \textit{Coffea arabica}: temperature defines the physiological window for growth and quality, while precipitation, together with soil water-holding capacity and management, determines water availability and the presence of a suitable dry period for flowering. Treating them symmetrically avoids embedding a strong prior about which constraint is more limiting on Hawai\okina i, which would require site-specific agronomic evidence.
+
+Empirical studies of Arabica suitability often treat temperature and precipitation as co-equal drivers when constructing bioclimatic envelopes or species distribution models, with both variables entering the analysis at comparable weight or importance \citep{OchoaCueva2017, SalasLopez2020}. Aligning the sub-model with this practice keeps the climatic component conceptually close to these established envelopes and makes the results easier to interpret in light of that literature. Equal weights also reduce the risk that uncertainty in one variable, such as precipitation projections, dominates the combined climate score.
+
+\subsubsection{Final Suitability Weights}
+
+In the final suitability model, the climate sub-model is combined with elevation, soil, road proximity, conservation constraints, critical habitat, Department of Defense land, and land use / land cover. The weights were assigned in line with prior multi-criteria coffee-suitability studies, which consistently treat climate and elevation as the dominant agronomic drivers and the legal and accessibility layers as secondary modifiers \citep{Mighty2015, OchoaCueva2017, SalasLopez2020}. Climate and elevation therefore carry the highest weight, soil and road proximity an intermediate weight, and the conservation, critical-habitat, and Department of Defense layers act primarily as restrictive masks that down-weight or exclude protected and inaccessible land.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Results}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Climate Suitability}
+
+Under current climate conditions, the most suitable areas are mainly along the western and southern slopes, where temperature and rainfall fall within the optimal range for \textit{Coffea arabica} (Figure~\ref{fig:climate_current}). The high central part of the island is mostly unsuitable because it is too cool, while the lowest coastal zones are limited by higher temperatures and, in some places, lower rainfall. Between these zones a band of suboptimal conditions appears, where one of the two climate variables is slightly outside the ideal range but still acceptable.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{climate_current.png}
+  \caption{Climate suitability for coffee plantations under current conditions. The green ramp runs from unsuitable (lightest) through sub-optimal to optimal (darkest).}
+  \label{fig:climate_current}
+\end{figure}
+
+The three mid-century projections (Figure~\ref{fig:climate_future}) show a progressive shift away from the current pattern as the emissions scenario intensifies. In the optimistic scenario (SSP1-2.6), the overall pattern is very similar to the current situation. The western slopes remain the main suitable area, and the size and shape of the optimal zone change only slightly. Some suboptimal cells near the existing suitable belt become more favourable, but there is no major gain or loss of suitable area across the island.
+
+Under the intermediate scenario (SSP3-7.0), the optimal zone becomes narrower and more fragmented, especially toward the interior of the island. Suboptimal conditions expand both upslope and toward lower elevations, indicating that more areas move just outside the ideal temperature range. The western slopes remain suitable overall, but there is a gradual shift from optimal to suboptimal conditions compared to the baseline.
+
+The pessimistic scenario (SSP5-8.5) shows the strongest change. Much of the low-lying coast becomes unsuitable as temperatures exceed the upper thresholds for \textit{Coffea arabica}, while mid-elevation areas that were previously too cool become suboptimal or optimal. As a result, the band of highest suitability clearly moves upslope and becomes more restricted in extent.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\textwidth]{climate_optimistic.png}
+    \caption{Optimistic (SSP1-2.6)}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\textwidth]{climate_intermediate.png}
+    \caption{Intermediate (SSP3-7.0)}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\textwidth]{climate_pessimistic.png}
+    \caption{Pessimistic (SSP5-8.5)}
+  \end{subfigure}
+  \caption{Climate suitability for coffee plantations under the three mid-century (2041--2070) CMIP6 scenarios. The green ramp runs from unsuitable (lightest) through sub-optimal to optimal (darkest).}
+  \label{fig:climate_future}
+\end{figure}
+
+\subsection{Individual Factor Layers}
+
+The following figures show the suitability classification maps produced for the elevation, road, and soil factor layers before combination in the Suitability Modeler.
+
+\subsubsection{Elevation}
+
+The elevation analysis applies the three-point suitability scale based on suitable elevation for \textit{C.~arabica}: unsuitable below 900\,m or above 2{,}500\,m, suboptimal at 900--1{,}400\,m and 1{,}800--2{,}500\,m, and optimal at 1{,}400--1{,}800\,m (Figure~\ref{fig:result_elevation}). The optimal band forms a narrow ring around the flanks of Mauna Loa and Mauna Kea, with the high summits and the low coastal fringe falling outside the suitable range.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{result_elevation.png}
+  \caption{Elevation suitability for coffee plantations on the Island of Hawai\okina i. Optimal: 1{,}400--1{,}800\,m; suboptimal: 900--1{,}400\,m and 1{,}800--2{,}500\,m; unsuitable: $<$900\,m or $>$2{,}500\,m.}
+  \label{fig:result_elevation}
+\end{figure}
+
+\subsubsection{Roads}
+
+The road-network analysis uses a three-point suitability scale based on distance to the retained highway classes (Figure~\ref{fig:result_roads}). Distances below 2{,}000\,m are optimal and distances between 2{,}000 and 5{,}000\,m suboptimal; unsuitable distances greater than 5{,}000\,m were made transparent to preserve the integrity of the island outline, since they contain all values beyond the suboptimal range. Accessibility is concentrated along the coastal highway loop and the main cross-island routes, leaving the interior largely beyond optimal road distance.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{result_roads.png}
+  \caption{Road-network suitability for coffee plantations on the Island of Hawai\okina i. Optimal: $<$2{,}000\,m; suboptimal: 2{,}000--5{,}000\,m. Areas beyond 5{,}000\,m are rendered transparent.}
+  \label{fig:result_roads}
+\end{figure}
+
+\subsubsection{Soil}
+
+The soil analysis reclassifies USDA Taxonomy orders onto the three-point suitability scale (Figure~\ref{fig:result_soil}). Most of the island is classified as optimal, reflecting the dominance of young, well-drained volcanic soils, with suboptimal and unsuitable areas concentrated along the north-western and western coast where drainage and soil moisture conditions are less favourable.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{result_soil.png}
+  \caption{Soil suitability on the Island of Hawai\okina i, classified by USDA Taxonomy order onto a three-point scale (optimal, suboptimal, unsuitable).}
+  \label{fig:result_soil}
+\end{figure}
+
+\subsection{Final Suitability Projection}
+
+The final weighted suitability maps combine the climate sub-model with all static factor layers, with critical habitat and Department of Defense land masked out (Figure~\ref{fig:result_final}). Across all three time horizons, the final projections show an overall fitting suitability of \textit{C.~arabica} on Hawai\okina i, with the highest-suitability areas concentrated on the eastern and south-western flanks of the island. These areas remain the primary candidates for cultivation under both current and projected conditions, although the highest-suitability band narrows and shifts upslope as the climate signal strengthens.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{result_final_suitability.png}
+  \caption{Final suitability projection for \textit{C.~arabica} cultivation on the Island of Hawai\okina i: (a) present, (b) mid-century, and (c) far-future climate. Higher values (teal) indicate greater suitability; Department of Defense areas and critical habitat are masked.}
+  \label{fig:result_final}
+\end{figure}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Discussion}
+% ══════════════════════════════════════════════════════════════════════════════
+
+This study evaluated the potential for successful cultivation of \textit{C.~arabica} on the Island of Hawai\okina i under current and projected mid-century climate conditions. The results indicate that coffee suitability is set to continue into the future. In particular, the areas on the eastern and south-western hillsides retain a high projected suitability across all future scenarios, making them the primary candidates for the cultivation of \textit{C.~arabica}.
+
+There are, however, several factors that the current model does not capture, and which would require further research beyond the resources available here. The literature shows that growing \textit{C.~arabica} under a conventional plantation format has a high irrigation requirement to supplement the water provided through precipitation in the current climate \citep{DaMatta2006}. With climate change, freshwater supply may undergo substantial changes in availability, and precipitation totals for Hawai\okina i are projected to decrease \citep{Timm2015}. Groundwater recharge also declines when land use shifts away from native forest, further reducing freshwater availability on Hawai\okina i, as shown in comparable research in North Kona \citep{Bremer2018}. A projection analysis incorporating expected water consumption, irrigation demand, and freshwater availability under different land-use scenarios would be required to fully assess the impact of expanded coffee production on the Hawaiian hydrological system.
+
+There is also evidence for the redistribution and loss of pollinators under climate change, which could shift the viable plantation area. Pollinator populations, and therefore the viable area for coffee in other coffee-producing regions, are projected to decline substantially \citep{Imbach2017}. This risk should be assessed in more detail before reaching a definitive conclusion on the feasibility of expanding coffee plantations on Hawai\okina i.
+
+Agroforestry may offer part of the solution, as it has been shown to increase biodiversity, insect populations, and the water-retention capacity of the land-use system compared with conventional plantations, as demonstrated in a study in Peru \citep{GrandezAlberca2025}. Improving the feasibility of implementing sustainable farming practices can be supported through financial incentives, as shown in Honduras, where farmers are encouraged by local governments through direct funding or through higher price points permitted for sustainably certified products \citep{QuinonezCamarillo2025}. The Hawaiian government should explore the implementation of agroforestry on future coffee plantations.
+
+\subsection{Limitations}
+
+\begin{itemize}
+  \item Suitability scores are derived from a static snapshot of projected mid-century climate and do not capture interannual variability or extreme events.
+  \item The analysis does not include a hydrological model; water availability is treated only as a function of precipitation suitability.
+  \item Pollinator distribution under future climate is not spatially modelled.
+  \item The single physiological reclassification scheme assumes constant thresholds for \textit{C.~arabica} and does not account for cultivar adaptation or changes in management.
+  \item The spatial resolution of the CHELSA climate products is coarse relative to the steep topographic gradients of Hawai\okina i, and the quality and vintage of the land-use and conservation datasets introduce additional uncertainty alongside the spread of the CMIP6 ensemble.
+\end{itemize}
+
+\subsection{Conclusion}
+
+Taken together, the analysis shows that the Island of Hawai\okina i retains substantial suitable land for \textit{Coffea arabica} cultivation under current climate, concentrated on the western and southern slopes within the optimal elevation band. Under the three mid-century scenarios, the broad suitability pattern is largely preserved under strong mitigation (SSP1-2.6) but contracts and migrates upslope as warming intensifies (SSP3-7.0 and SSP5-8.5), with the low coastal zones becoming increasingly unsuitable. The eastern and south-western flanks remain the most robust candidates for cultivation across all scenarios. We therefore consider that there is potential for the continued economic use of coffee cultivation on Hawai\okina i in a changing climate, provided that water availability, pollinator decline, and mitigation strategies such as agroforestry are assessed in greater detail before any expansion.
+
+% ══════════════════════════════════════════════════════════════════════════════
+% References
+% ══════════════════════════════════════════════════════════════════════════════
+
+\newpage
+\bibliography{references}
+
+% ══════════════════════════════════════════════════════════════════════════════
+% Appendices
+% ══════════════════════════════════════════════════════════════════════════════
+
+\appendix
+
+% ── Appendix A: DAM flowchart ─────────────────────────────────────────────────
+\section{Flowchart Illustrating the Analysis Steps of the DAM}
+\label{app:dam_flowchart}
+
+The Data Action Model (DAM) is presented as a flowchart that visually outlines all analysis steps undertaken in this project (Figure~\ref{fig:dam}). The flowchart provides a structured overview of the workflow, from data acquisition and preprocessing through transformation and analysis to the final suitability modelling. Each step represents a specific GIS operation applied to the datasets, ensuring transparency and reproducibility of the methodology. The accompanying action and dataset tables (Appendix~\ref{app:dam_tables}) describe every individual step, including the type of data handling, the operation performed, and the objective of each action.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{dam_flowchart.png}
+  \caption{Data Action Model showing the steps of the analysis. See Tables~\ref{tab:dam_actions} and~\ref{tab:dam_intermediate} for an explanation of the steps and intermediate results.}
+  \label{fig:dam}
+\end{figure}
+
+% ── Appendix B: DAM tables ────────────────────────────────────────────────────
+\section{DAM Tables}
+\label{app:dam_tables}
+
+% ── Table 1: Action description ───────────────────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}c >{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}p{9.1cm}@{}}
+  \caption{Action description table describing all analysis actions.}
+  \label{tab:dam_actions}\\
+  \toprule
+  \textbf{Action} & \textbf{Type of handling} & \textbf{Operation} & \textbf{Objective} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{4}{c}{\itshape (Table~\ref{tab:dam_actions} continued)}\\
+  \toprule
+  \textbf{Action} & \textbf{Type of handling} & \textbf{Operation} & \textbf{Objective} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  % ─── PRECIPITATION ───────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Precipitation} (for all three projections)}} \\
+  \addlinespace
+  1 & Transformation & Clip Raster & Restrict the rasters (current precipitation + SSP1-2.6 + SSP3-7.0 + SSP5-8.5) to the Hawai\okina i study area to remove irrelevant data. \\
+  2 & Transformation & Project Raster (if needed); Resample; Set Snap Raster & Ensure all rasters share the same CRS, spatial resolution, and alignment as the common raster framework. \\
+  3 & Transformation & Unit check and conversion (Raster Calculator if needed) & Convert monthly values (mm/month) to annual precipitation (mm/year). Range for 3-tier suitability scoring: $<$1{,}100\,mm (score 1); 1{,}100--1{,}600\,mm or 1{,}800--2{,}000\,mm (score 2); 1{,}600--1{,}800\,mm (score 3); $>$2{,}000\,mm (score 1). Thresholds adapted from \citet{DaMatta2006}. \\
+  4 & Processing & Reclassify Raster & Reclassify the annual precipitation raster to 3-tier suitability scores on a 1--3 scale: $<$1{,}100\,mm/year $\rightarrow$ 1 (unsuitable); 1{,}100--1{,}600\,mm/year $\rightarrow$ 2 (suboptimal); 1{,}600--1{,}800\,mm/year $\rightarrow$ 3 (optimal); 1{,}800--2{,}000\,mm/year $\rightarrow$ 2 (suboptimal); $>$2{,}000\,mm/year $\rightarrow$ 1 (unsuitable). \\
+  5 & Transformation & Copy Raster / Export Raster (separate outputs per dataset) & Store each precipitation suitability raster separately to enable later comparison and overlay analysis. \\
+  \addlinespace
+  % ─── TEMPERATURE ─────────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Temperature} (for all three projections)}} \\
+  \addlinespace
+  6 & Transformation & Clip Raster & Restrict the rasters (current temperature + SSP1-2.6 + SSP3-7.0 + SSP5-8.5) to the Hawai\okina i study area to remove irrelevant data and ensure spatial consistency. \\
+  7 & Transformation & Project Raster (if needed); Resample; Set Snap Raster & Ensure all rasters share the same CRS, spatial resolution, and alignment as the common raster framework. \\
+  8 & Transformation & Unit check and conversion (Raster Calculator if needed) & Convert tenths of °C (°C $\times$ 10) to degrees Celsius if needed. Target range for 3-tier suitability scoring: $<$15\,°C (score 1); 15--18\,°C or 23--26\,°C (score 2); 18--23\,°C (score 3); $>$26\,°C (score 1). \\
+  9 & Processing & Reclassify Raster & Reclassify the temperature raster to 3-tier suitability scores on a 1--3 scale: $<$15\,°C $\rightarrow$ 1 (unsuitable); 15--18\,°C $\rightarrow$ 2 (suboptimal); 18--23\,°C $\rightarrow$ 3 (optimal); 23--26\,°C $\rightarrow$ 2 (suboptimal); $>$26\,°C $\rightarrow$ 1 (unsuitable). \\
+  10 & Transformation & Copy Raster / Export Raster (separate outputs per dataset) & Store each temperature suitability raster separately to enable later comparison and overlay analysis. \\
+  \addlinespace
+  % ─── ROADS ───────────────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Roads}}} \\
+  \addlinespace
+  11 & Selection & Select Layer By Attribute & Filter Roads\_-\_Hawaii\_County to retain only roads of class A35, A31, or Q05, removing local roads and leaving only those relevant to the analysis. \\
+  12 & Transformation & Distance Accumulation & Create a raster dataset in which each cell value is the distance to the nearest usable road. \\
+  13 & Processing & Reclassify & Create a 3-tier suitability score: $<$2{,}000\,m $\rightarrow$ optimal (3); 2{,}000--5{,}000\,m $\rightarrow$ suboptimal (2); $>$5{,}000\,m $\rightarrow$ unsuitable (1). \\
+  \addlinespace
+  % ─── SOIL TYPE ───────────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Soil type}}} \\
+  \addlinespace
+  14 & Query (thematic) & Join (value field = Number) & Join the raster TAXOUSDA\_250m\_ll.tif with the table TAXOUSDA\_250m\_ll.tif.csv to link the numeric raster values to generic soil type names in the table. \\
+  15 & Processing by overlay & Clip Raster & Clip the raster to the main island of Hawai\okina i, removing all other areas. \\
+  16 & Processing & Reclassify Raster & Convert generic soil types to suitability scores: Andisols, Ultisols, Inceptisols $\rightarrow$ 3 (optimal); other orders $\rightarrow$ 2 (suboptimal); Aridisols, Histosols $\rightarrow$ 1 (unsuitable). \\
+  17 & Transformation & Copy Raster / Export Raster & Store the soil type suitability raster to enable later comparison and overlay analysis. \\
+  \addlinespace
+  % ─── LAND USE, CONSERVATION AND TERRAIN ──────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Land use, conservation, and terrain}}} \\
+  \addlinespace
+  18 & Query (thematic) & Select by Attribute & In dataset 0F, select records present on Hawai\okina i and clip the dataset. \\
+  19 & Transformation & Polygon to Raster & Convert the conservation district data for Hawai\okina i into a raster. \\
+  20 & Processing & Reclassify Raster & Convert to suitability scores: G (General), C (Undesignated) $\rightarrow$ 1 (suitable); R (Resource) $\rightarrow$ 0.75; L (Limited) $\rightarrow$ 0.25; P (Protective), SS (Special subzone) $\rightarrow$ 0 (unsuitable). \\
+  21 & Transformation & Export Raster & Store the conservation district raster to enable later comparison and overlay analysis. \\
+  22 & Query (thematic) & Select by Attribute & In dataset 0G, select records present on Hawai\okina i. \\
+  23 & Transformation & Polygon to Raster & Convert the critical habitat data for Hawai\okina i into a raster. \\
+  24 & Transformation & Export Raster & Store the critical habitat raster to enable later comparison and overlay analysis. The suitability score of 0 is already included in the unmodified dataset. \\
+  25 & Query (thematic) & Select by Attribute & In dataset 0H, select records present on Hawai\okina i and clip the dataset. \\
+  26 & Transformation & Polygon to Raster & Convert the Department of Defense data for Hawai\okina i into a raster. \\
+  27 & Processing & Reclassify Raster & Convert to suitability scores: military land $\rightarrow$ 0 (unsuitable). \\
+  28 & Transformation & Export Raster & Store the Department of Defense raster to enable later comparison and overlay analysis. \\
+  29 & Query (thematic) & Select by Attribute & In dataset 0I, select records present on Hawai\okina i and clip the dataset. \\
+  30 & Transformation & Polygon to Raster & Convert the land use / land cover data for Hawai\okina i into a raster. \\
+  31 & Processing & Reclassify Raster & Convert to suitability scores: classes 1\textasciitilde, 5\textasciitilde, 7\textasciitilde, 8\textasciitilde, 9\textasciitilde~$\rightarrow$ 0 (unsuitable); 2\textasciitilde, 3\textasciitilde~$\rightarrow$ 1 (suitable); 4\textasciitilde, 6\textasciitilde~$\rightarrow$ 0.5 (not preferred). \\
+  32 & Transformation & Export Raster & Store the land use / land cover raster to enable later comparison and overlay analysis. \\
+  \addlinespace
+  % ─── ELEVATION ───────────────────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Elevation}}} \\
+  \addlinespace
+  33 & Transformation & Topo to Raster & Convert the given polyline (contour) dataset into a usable raster. \\
+  34 & Processing & Raster Calculator & Remove all negative elevation gradients (ocean floor). \\
+  35 & Processing & Raster Calculator & Reclassify the elevation raster to 3-tier suitability scores on a 1--3 scale: $<$900\,m $\rightarrow$ 1 (unsuitable); 900--1{,}400\,m $\rightarrow$ 2 (suboptimal); 1{,}400--1{,}800\,m $\rightarrow$ 3 (optimal); 1{,}800--2{,}500\,m $\rightarrow$ 2 (suboptimal); $>$2{,}500\,m $\rightarrow$ 1 (unsuitable). \\
+  36 & Transformation & Copy Raster / Export Raster & Store the elevation suitability raster for later comparison and overlay analysis. \\
+  \addlinespace
+  % ─── SUITABILITY MODELLING ───────────────────────────────────────────────────
+  \multicolumn{4}{@{}l}{\textit{\textbf{Suitability modelling} (all projections)}} \\
+  \addlinespace
+  37 & Processing & Suitability Modeler & Combine temperature and precipitation suitability into the climate sub-model and store it for use in action 38. \\
+  38 & Processing & Suitability Modeler & Combine the climate sub-model with the elevation, road, soil, conservation, critical habitat, Department of Defense, and land use / land cover layers to produce and store the final suitability raster for each projection. \\
+\end{longtable}
+\end{landscape}
+
+% ── Table 2: Dataset description ──────────────────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}l >{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{6.0cm} >{\raggedright\arraybackslash}p{1.9cm}@{}}
+  \caption{Data description table of the data used for the analysis.}
+  \label{tab:dam_intermediate}\\
+  \toprule
+  \textbf{ID} & \textbf{Dataset} & \textbf{Attribute} & \textbf{Meas. scale} & \textbf{Attribute domain} & \textbf{Data structure} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{6}{c}{\itshape (Table~\ref{tab:dam_intermediate} continued)}\\
+  \toprule
+  \textbf{ID} & \textbf{Dataset} & \textbf{Attribute} & \textbf{Meas. scale} & \textbf{Attribute domain} & \textbf{Data structure} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  % Input datasets
+  0A & Assignment data & Precipitation (mm/month) & Ratio & 0--$\infty$ & Raster \\
+  0B & Assignment data & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  0C & \fn{Roads\_-\_Hawaii\_County} & Roads & Nominal & All & Vector \\
+  0D & \fn{TAXOUSDA\_250m\_ll.tif} & Value & Nominal & 1--99 & Raster \\
+  0E & \fn{TAXOUSDA\_250m\_ll.tif.csv} & Generic & Nominal & All & Table \\
+  0F & Conservation District Subzones & Conservation District Code & Nominal & All & Vector \\
+  0G & Areas of Critical Habitat (Consolidated) & Critical Habitats & Nominal & All & Vector \\
+  0H & Department of Defense Lands & Base\_Name & Nominal & All & Vector \\
+  0I & Land Use Land Cover (LULC) & LandCover & Nominal & 1--92 & Vector \\
+  0J & \fn{Hawaii\_100\_Foot\_Contours} & Elevation & Ratio & 100--13{,}700\,ft & Vector \\
+  \addlinespace
+  % Precipitation intermediates
+  1A & Clipped precipitation & Precipitation (mm/month) & Ratio & 0--$\infty$ & Raster \\
+  2A & Aligned precipitation & Precipitation (mm/month) & Ratio & 0--$\infty$ & Raster \\
+  3A & Annual precipitation & Precipitation (mm/year) & Ratio & 0--$\infty$ & Raster \\
+  4A & Precipitation suitability & Precipitation (mm/year) & Ordinal & 1 (unsuit.: $<$1{,}100 or $>$2{,}000\,mm); 2 (subopt.: 1{,}100--1{,}600 or 1{,}800--2{,}000\,mm); 3 (opt.: 1{,}600--1{,}800\,mm) & Raster \\
+  5A & Precipitation suitability (exported) & Precipitation (mm/year) & Ordinal & As 4A & Raster \\
+  \addlinespace
+  % Temperature intermediates
+  6A & Clipped temperature & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  7A & Aligned temperature & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  8A & Converted temperature & Temperature (°C) & Interval & $-\infty$--$\infty$ & Raster \\
+  9A & Temperature suitability & Temperature (°C) & Ordinal & 1 (unsuit.: $<$15 or $>$26\,°C); 2 (subopt.: 15--18 or 23--26\,°C); 3 (opt.: 18--23\,°C) & Raster \\
+  10A & Temperature suitability (exported) & Temperature (°C) & Ordinal & As 9A & Raster \\
+  \addlinespace
+  % Roads
+  11A & \fn{Highways\_Hawaii} & Roads & Binary & 1 (HWY, HIGHWAY) & Vector \\
+  12A & Distance from roads & Roads & Ratio & 0--$\infty$\,m & Raster \\
+  13A & Road suitability & Roads & Ordinal & 1 (unsuitable); 2 (suboptimal); 3 (optimal) & Raster \\
+  \addlinespace
+  % Soil
+  14A & \fn{TAXOUSDA\_250m\_ll} (joined) & Generic & Nominal & All & Raster \\
+  15A & \fn{TAXOUSDA\_250m\_ll\_Clip} & Generic & Nominal & All & Raster \\
+  16A & \fn{Reclass\_TAXClip} & Generic & Ordinal & 1 (Aridisols, Histosols); 2 (other orders); 3 (Andisols, Ultisols, Inceptisols) & Raster \\
+  17A & \fn{Reclass\_TAXClip} (exported) & Generic & Ordinal & As 16A & Raster \\
+  \addlinespace
+  % Conservation
+  18A & \fn{Conservation\_Districts\_Hawaii} & Terrain & Nominal & G, C, R, L, P, SS & Vector \\
+  19A & \fn{CD\_Hawaii\_Raster} & Terrain & Nominal & G, C, R, L, P, SS & Raster \\
+  20A & \fn{CD\_Suitability} & Terrain & Categorical & 1 (G, C); 0.75 (R); 0.25 (L); 0 (P, SS) & Raster \\
+  21A & \fn{CD\_Suitability} (exported) & Terrain & Categorical & As 20A & Raster \\
+  \addlinespace
+  % Critical habitat
+  22A & \fn{Critical\_Habitat\_Hawai}\okina i & Conservation & Categorical & 0 (critical habitat) & Vector \\
+  23A & CHR & Conservation & Categorical & 0 (critical habitat) & Raster \\
+  24A & CHR (exported) & Conservation & Categorical & 0 (critical habitat) & Raster \\
+  \addlinespace
+  % DoD
+  25A & \fn{DeptofDefense\_Hawaii} & Land use & Nominal & Base\_Name & Vector \\
+  26A & DDR & Land use & Nominal & Base\_Name & Raster \\
+  27A & ArmyArea & Land use & Categorical & 0 (military land) & Raster \\
+  28A & ArmyArea (exported) & Land use & Categorical & 0 (military land) & Raster \\
+  \addlinespace
+  % LULC
+  29A & LandUseLandCover & Land use & Nominal & 1\textasciitilde~(Urban); 2\textasciitilde~(Agriculture); 3\textasciitilde~(Rangeland); 4\textasciitilde~(Forest); 5\textasciitilde~(Water); 6\textasciitilde~(Wetland); 7\textasciitilde~(Barren); 8\textasciitilde~(Tundra); 9\textasciitilde~(Perm. snow) & Vector \\
+  30A & USLUR & Land use & Nominal & As 29A & Raster \\
+  31A & LandUseSuitability & Land use & Categorical & 0 (1\textasciitilde,5\textasciitilde,7\textasciitilde,8\textasciitilde,9\textasciitilde); 0.5 (4\textasciitilde,6\textasciitilde); 1 (2\textasciitilde,3\textasciitilde) & Raster \\
+  32A & LandUseSuitability (exported) & Land use & Categorical & As 31A & Raster \\
+  \addlinespace
+  % Elevation
+  33A & Elevation raster & Elevation & Ratio & $-$2{,}562--13{,}493\,ft & Raster \\
+  34A & Positive elevation raster & Elevation & Ratio & 0--13{,}493\,ft & Raster \\
+  35A & Elevation suitability & Elevation & Ordinal & 1 (unsuit.: $<$900 or $>$2{,}500\,m); 2 (subopt.: 900--1{,}400 or 1{,}800--2{,}500\,m); 3 (opt.: 1{,}400--1{,}800\,m) & Raster \\
+  36A & Elevation suitability (exported) & Elevation & Ordinal & As 35A & Raster \\
+  \addlinespace
+  % Final outputs
+  37A & Climate sub-model (per scenario) & Climate suitability & Ratio & n/a & Raster \\
+  38A & Coffee Plantation Suitability & Suitability model & Ratio & n/a & Raster \\
+\end{longtable}
+\end{landscape}
+
+% ── Appendix C: Logbook ───────────────────────────────────────────────────────
+\section{Project Logbook}
+\label{app:logbook}
+
+\input{logbook}
+
+% ── Appendix D: Generative AI statement ───────────────────────────────────────
+\section{Generative AI Statement}
+\label{app:ai}
+
+\textbf{Declaration on Generative AI.} During the preparation of this work, the authors used Claude Opus and Sonnet 4.6 for grammar and spelling checks, and for occasional prompting to refine specific phrasing or terms for clarity. No text was purely AI-generated.
+
+AI tools were also occasionally used for technical support and debugging in ArcGIS. Prompts were given in the following general forms: ``What could be the root causes of this error: [error]'', ``What are the advantages and disadvantages of [operation]'', and ``How do I correctly use this tool: [tool]''.
+
+After using these tools, the authors reviewed and edited the content as needed and take full responsibility for the report's content.
+
+\end{document}
