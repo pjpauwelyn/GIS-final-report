@@ -6,9 +6,9 @@
 \usepackage{lmodern}
 \usepackage[british]{babel}
 \usepackage{geometry}
-\geometry{margin=2.5cm}
+\geometry{margin=2.3cm}
 \usepackage{setspace}
-\onehalfspacing
+\setstretch{1.15}
 \usepackage{parskip}
 \usepackage{graphicx}
 \graphicspath{{figures/}}
@@ -70,9 +70,20 @@
   Jochem Oude Groeniger (s1141308)\\[0.2em]
   Pieterjan Pauwelyn (s1089656)\par}
   \vspace{1.5cm}
-  {\normalsize Wageningen University \& Research\\[0.2em]
+  {\normalsize Radboud University\\[0.2em]
   \today\par}
 \end{titlepage}
+
+% ── Summary ───────────────────────────────────────────────────────────────────
+\newpage
+\section*{Summary}
+\addcontentsline{toc}{section}{Summary}
+
+Coffee is a major global crop, and \textit{Coffea arabica} has a narrow climatic range that makes it sensitive to a warming climate. This project maps where Arabica coffee can be grown on the Island of Hawai\okina i under current conditions and under three mid-century climate scenarios. We used a multi-criteria suitability analysis in ArcGIS Pro built around a Data Action Model. Climate, elevation, soil, road access, land use, and legal constraints such as conservation districts, critical habitat, and military land were each reclassified onto a common suitability scale, combined into a climate sub-model, and then weighted into a final suitability map for every scenario.
+
+The results show that suitable land for coffee remains available across all scenarios. The most suitable areas lie on the eastern and south-western flanks of the island, where temperature, rainfall, and elevation fall within the optimal range. As the emissions scenario intensifies, the band of highest suitability narrows and shifts upslope: the low coast becomes too warm, while cooler mid-elevation areas move into the suitable range. The optimistic scenario stays close to the current pattern, the intermediate scenario fragments the optimal zone, and the pessimistic scenario produces the strongest upslope shift.
+
+The model captures the main biophysical and legal factors but does not include irrigation demand, freshwater availability, or pollinator dynamics, all of which could change the picture under climate change. We recommend that any expansion of coffee production on Hawai\okina i focus on the eastern and south-western slopes, account for water and pollination constraints in follow-up work, and consider agroforestry as a more resilient alternative to conventional plantations.
 
 % ── Table of contents ─────────────────────────────────────────────────────────
 \newpage
@@ -124,6 +135,15 @@ The workflow follows a multi-criteria suitability analysis in ArcGIS Pro, struct
 
 Suitability is represented on simple, interpretable scales. Climatic and elevation factors use an ordinal 1--3 coding (1\,=\,unsuitable, 2\,=\,suboptimal, 3\,=\,optimal), which matches the narrow physiological thresholds of \textit{Coffea arabica}. The conservation and land-use factors use fractional scores between 0 and 1, allowing legal and ecological restrictions to be represented as graded penalties rather than a strict all-or-nothing mask (Section~\ref{sec:conservation}).
 
+\subsection{Input Data: Availability and Quality}
+\label{sec:data}
+
+The analysis used the datasets provided with the assignment together with a few openly available layers for Hawai\okina i. Climate came from CHELSA, which supplies current precipitation and temperature rasters and matching CMIP6 projections for the three SSP scenarios \citep{CHELSA}. Soil came from the SoilGrids TAXOUSDA layer at 250\,m resolution, with an accompanying lookup table mapping numeric codes to USDA Taxonomy orders \citep{Hengl2017}. Roads, conservation district subzones, areas of critical habitat, Department of Defense lands, land use / land cover, and elevation contours were all taken from State of Hawai\okina i open GIS datasets. The full list of inputs, attributes, and data structures is given in Appendix~\ref{app:dam_tables}.
+
+The core data needed for the analysis were available, but not in an ideal form. Climate resolution is the main limitation. CHELSA grids are coarse relative to the steep terrain of Hawai\okina i, where temperature and rainfall change sharply over short distances because of elevation and orographic effects. A finer-resolution, island-specific climate product would capture these gradients better and reduce the smoothing visible in the suitability maps. The soil layer has the same problem: at 250\,m it cannot resolve the local variation in volcanic soils that matters for coffee, and it carries only soil order rather than the depth, pH, and drainage detail that the suitability scoring really depends on. The road and land-use layers are adequate for a coarse accessibility and exclusion analysis but are not dated consistently, so recent changes in the network or in land cover may not be reflected.
+
+Several datasets that would improve the model were not available to us. Field-measured soil profiles, current plantation locations and yields, and a high-resolution climate downscaling for the island would each raise confidence in the results. Data availability could be improved by combining the open state layers with a local soil survey and with monitoring data from existing Kona and Ka\okina u coffee farms, which would allow the suitability thresholds to be calibrated against observed performance rather than literature ranges alone. For this project we treated the supplied data as authoritative, kept all layers in a common coordinate system and resolution, and avoided extrapolating beyond what the inputs can support.
+
 \subsection{Factor Selection and Thresholds}
 \label{sec:criteria}
 
@@ -158,15 +178,22 @@ Conservation districts, critical habitat, and Department of Defense lands were i
 
 Land use / land cover was reclassified into three broad suitability levels. Agricultural and rangeland classes were considered suitable (1), urban, water, barren, tundra, and permanent snow classes unsuitable (0), and forest and wetland assigned an intermediate value (0.5). The strict exclusion of urban and water reflects obvious incompatibility with new coffee plantations. Forest and wetland are down-weighted but not fully excluded to acknowledge both their ecological value and the possibility of agroforestry or carefully managed conversion; this is the only purely design-based choice not prescribed in the assignment and is intended to be conservative while still allowing scenario exploration.
 
-\begin{table}[H]
-  \centering
+\begingroup
+\renewcommand{\arraystretch}{1.3}
+\begin{longtable}{@{}l >{\raggedright\arraybackslash}p{6.2cm} c l@{}}
   \caption{Suitability scoring scheme applied to each factor layer.}
-  \label{tab:criteria}
-  \renewcommand{\arraystretch}{1.3}
-  \begin{tabularx}{\textwidth}{@{}lXcc@{}}
-    \toprule
-    \textbf{Factor} & \textbf{Threshold / class} & \textbf{Score} & \textbf{Class label} \\
-    \midrule
+  \label{tab:criteria}\\
+  \toprule
+  \textbf{Factor} & \textbf{Threshold / class} & \textbf{Score} & \textbf{Class label} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{4}{c}{\itshape (Table~\ref{tab:criteria} continued)}\\
+  \toprule
+  \textbf{Factor} & \textbf{Threshold / class} & \textbf{Score} & \textbf{Class label} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
     \multirow{5}{*}{Precipitation (mm/yr)} & $<$1{,}100 & 1 & Unsuitable \\
      & 1{,}100--1{,}600 & 2 & Suboptimal \\
      & 1{,}600--1{,}800 & 3 & Optimal \\
@@ -207,9 +234,8 @@ Land use / land cover was reclassified into three broad suitability levels. Agri
     \multirow{3}{*}{Land Use / Land Cover} & Urban, Water, Barren, Tundra, Snow & 0 & Unsuitable \\
      & Agriculture, Rangeland & 1 & Suitable \\
      & Forest, Wetland & 0.5 & Not preferred \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+\end{longtable}
+\endgroup
 
 \subsection{Climate Scenarios and Projections}
 
@@ -258,19 +284,8 @@ The pessimistic scenario (SSP5-8.5) shows the strongest change. Much of the low-
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}{0.32\textwidth}
-    \includegraphics[width=\textwidth]{climate_optimistic.png}
-    \caption{Optimistic (SSP1-2.6)}
-  \end{subfigure}\hfill
-  \begin{subfigure}{0.32\textwidth}
-    \includegraphics[width=\textwidth]{climate_intermediate.png}
-    \caption{Intermediate (SSP3-7.0)}
-  \end{subfigure}\hfill
-  \begin{subfigure}{0.32\textwidth}
-    \includegraphics[width=\textwidth]{climate_pessimistic.png}
-    \caption{Pessimistic (SSP5-8.5)}
-  \end{subfigure}
-  \caption{Climate suitability for coffee plantations under the three mid-century (2041--2070) CMIP6 scenarios. The green ramp runs from unsuitable (lightest) through sub-optimal to optimal (darkest).}
+  \includegraphics[width=\textwidth]{climate_future_panels.jpg}
+  \caption{Climate suitability for coffee plantations under the three mid-century (2041--2070) CMIP6 scenarios: optimistic (SSP1-2.6), intermediate (SSP3-7.0), and pessimistic (SSP5-8.5). The green ramp runs from unsuitable (lightest) through sub-optimal to optimal (darkest).}
   \label{fig:climate_future}
 \end{figure}
 
@@ -313,7 +328,11 @@ The soil analysis reclassifies USDA Taxonomy orders onto the three-point suitabi
 
 \subsection{Final Suitability Projection}
 
-The final weighted suitability maps combine the climate sub-model with all static factor layers, with critical habitat and Department of Defense land masked out (Figure~\ref{fig:result_final}). Across all three time horizons, the final projections show an overall fitting suitability of \textit{C.~arabica} on Hawai\okina i, with the highest-suitability areas concentrated on the eastern and south-western flanks of the island. These areas remain the primary candidates for cultivation under both current and projected conditions, although the highest-suitability band narrows and shifts upslope as the climate signal strengthens.
+The final weighted suitability maps combine the climate sub-model with all static factor layers, with critical habitat and Department of Defense land masked out (Figure~\ref{fig:result_final}). Suitability is shown on a continuous ramp, with the higher values (teal) marking the better sites and the lower values (orange) the poorer ones. Across all three time horizons the maps show that suitable land for \textit{C.~arabica} stays available on Hawai\okina i, with the highest-suitability areas forming broad bands on the eastern and south-western flanks of the island.
+
+The spatial pattern follows directly from the factor layers. The high summits of Mauna Loa and Mauna Kea stay unsuitable in every map because they are too cool and too high, which is why the centre of the island is consistently poor. The low coastal fringe is held down by warm temperatures and, on the drier western side, by low rainfall. Between these two limits sits the mid-elevation belt where climate, elevation, and soil line up, and this belt carries almost all of the high-suitability area. The orange masks cut into this belt where critical habitat and military land remove otherwise suitable ground, most visibly in the central and southern parts of the island.
+
+The three panels show how this belt moves as the climate signal strengthens. In the present-day map (a) the high-suitability band is at its widest and reaches furthest down the eastern slopes. In the mid-century map (b) the band narrows and breaks up, as warming pushes the lower edge of the suitable zone upslope and trims the suitable area along the coast. In the far-future map (c) the shift is clearest: the lowest ground turns unsuitable as temperatures pass the upper limit for Arabica, while some cooler mid-elevation ground that was marginal before moves into the suitable range. The net effect is not a collapse of suitable land but a steady migration of it to higher elevations, leaving a narrower and more fragmented suitable zone concentrated on the eastern and south-western slopes.
 
 \begin{figure}[H]
   \centering
